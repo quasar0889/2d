@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live2D Model Viewer</title>
+  <title>桃瀬ひより Live2D モーション再生</title>
   <style>
     body {
       margin: 0;
@@ -24,42 +24,90 @@
 
   <script src="https://unpkg.com/@live2d/cubismframework"></script>
   <script>
-    // CanvasとWebGLの初期化
     const canvas = document.getElementById('live2dCanvas');
     const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-    if (!gl) {
-      alert("WebGLがサポートされていません");
-    }
 
-    // Live2Dモデルのロード関数
+    let model;
+    let motionManager;
+
+    // モーションファイル一覧
+    const motions = {
+      idle: 'hiyori_m01.motion3.json',
+      tapBody: 'hiyori_m02.motion3.json',
+      wave: 'hiyori_m03.motion3.json',
+      happy: 'hiyori_m04.motion3.json',
+      angry: 'hiyori_m05.motion3.json',
+      sad: 'hiyori_m06.motion3.json',
+      jump: 'hiyori_m07.motion3.json',
+      dance: 'hiyori_m08.motion3.json'
+    };
+
     async function loadLive2DModel() {
-      const modelUrl = 'path_to_your_model.model3.json'; // モデルファイルのパス
+      const modelUrl = 'live2d/Hiyori.model3.json';
       const response = await fetch(modelUrl);
-      if (!response.ok) {
-        console.error("モデルファイルが見つかりません");
-        return;
-      }
       const modelData = await response.json();
 
-      // モデルのセットアップ
-      const model = new Live2DCubismFramework.CubismModel(modelData);
+      model = new Live2DCubismFramework.CubismModel(modelData);
+      motionManager = new Live2DCubismFramework.CubismMotionManager();
 
-      // 描画ループの開始
+      // 初期モーションとして idle を再生
+      await playMotion('idle');
+
+      // 描画ループ
       function render() {
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
-        model.update(); // モデルの更新
-        model.draw();   // モデルの描画
+        motionManager.update(model);
+        model.update();
+        model.draw();
 
-        requestAnimationFrame(render); // 次フレームの予約
+        requestAnimationFrame(render);
       }
-
       render();
     }
 
-    // モデルの読み込み開始
-    loadLive2DModel().catch(error => console.error("モデルのロード中にエラーが発生しました:", error));
+    async function playMotion(motionName) {
+      if (!motions[motionName]) {
+        console.error(`モーション '${motionName}' が見つかりません`);
+        return;
+      }
+
+      const motionResponse = await fetch(motions[motionName]);
+      const motionData = await motionResponse.json();
+      const motion = new Live2DCubismFramework.CubismMotion(motionData);
+
+      motionManager.startMotion(motion, false);
+    }
+
+    // ランダムにモーションを再生
+    async function playRandomMotion() {
+      const keys = Object.keys(motions);
+      const randomKey = keys[Math.floor(Math.random() * keys.length)];
+      await playMotion(randomKey);
+    }
+
+    // クリックでランダムモーション再生
+    canvas.addEventListener('click', playRandomMotion);
+
+    // キーボード入力で特定のモーションを再生
+    window.addEventListener('keydown', async (e) => {
+      switch (e.key) {
+        case '1': await playMotion('idle'); break;
+        case '2': await playMotion('tapBody'); break;
+        case '3': await playMotion('wave'); break;
+        case '4': await playMotion('happy'); break;
+        case '5': await playMotion('angry'); break;
+        case '6': await playMotion('sad'); break;
+        case '7': await playMotion('jump'); break;
+        case '8': await playMotion('dance'); break;
+        default:
+          console.log('無効なキー:', e.key);
+      }
+    });
+
+    // モデル読み込み
+    loadLive2DModel().catch(console.error);
   </script>
 </body>
 </html>
