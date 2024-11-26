@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live2D Model Viewer</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f0f0f0;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="live2dCanvas"></canvas>
+
+  <script src="https://unpkg.com/@live2d/cubismframework"></script>
+  <script>
+    // CanvasとWebGLの初期化
+    const canvas = document.getElementById('live2dCanvas');
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    if (!gl) {
+      alert("WebGLがサポートされていません");
+    }
+
+    // Live2Dモデルのロード関数
+    async function loadLive2DModel() {
+      const modelUrl = 'path_to_your_model.model3.json'; // モデルファイルのパス
+      const response = await fetch(modelUrl);
+      if (!response.ok) {
+        console.error("モデルファイルが見つかりません");
+        return;
+      }
+      const modelData = await response.json();
+
+      // モデルのセットアップ
+      const model = new Live2DCubismFramework.CubismModel(modelData);
+
+      // 描画ループの開始
+      function render() {
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        model.update(); // モデルの更新
+        model.draw();   // モデルの描画
+
+        requestAnimationFrame(render); // 次フレームの予約
+      }
+
+      render();
+    }
+
+    // モデルの読み込み開始
+    loadLive2DModel().catch(error => console.error("モデルのロード中にエラーが発生しました:", error));
+  </script>
+</body>
+</html>
