@@ -30,7 +30,7 @@
     let model;
     let motionManager;
 
-    // モーションファイル一覧
+    // モーションファイルの一覧
     const motions = {
       idle: 'hiyori_m01.motion3.json',
       tapBody: 'hiyori_m02.motion3.json',
@@ -42,6 +42,7 @@
       dance: 'hiyori_m08.motion3.json'
     };
 
+    // モデルを読み込む
     async function loadLive2DModel() {
       const modelUrl = 'live2d/Hiyori.model3.json';
       const response = await fetch(modelUrl);
@@ -50,7 +51,7 @@
       model = new Live2DCubismFramework.CubismModel(modelData);
       motionManager = new Live2DCubismFramework.CubismMotionManager();
 
-      // 初期モーションとして idle を再生
+      // 初期モーションとしてidleを設定
       await playMotion('idle');
 
       // 描画ループ
@@ -67,6 +68,7 @@
       render();
     }
 
+    // モーション再生関数
     async function playMotion(motionName) {
       if (!motions[motionName]) {
         console.error(`モーション '${motionName}' が見つかりません`);
@@ -90,7 +92,7 @@
     // クリックでランダムモーション再生
     canvas.addEventListener('click', playRandomMotion);
 
-    // キーボード入力で特定のモーションを再生
+    // キーボードで特定のモーションを再生
     window.addEventListener('keydown', async (e) => {
       switch (e.key) {
         case '1': await playMotion('idle'); break;
@@ -106,7 +108,7 @@
       }
     });
 
-    // モデル読み込み
+    // モデルを読み込んで動かす
     loadLive2DModel().catch(console.error);
   </script>
 </body>
